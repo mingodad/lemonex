@@ -8,4 +8,13 @@ test.c
 test.dSYM/
 test.out
 test.exe
+# LEXGEN library build artifacts
+*.o
+*.a
+*.so
+liblexgen.*
+lexgen_example
+lexgen_lua.so
+lexer_generated.c
+demo_lexer.c
 
