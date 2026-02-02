@@ -1825,6 +1825,7 @@ struct LxState *LxState_create(struct LexerContext *ctx){
   new_state->dot_transition = 0;
   new_state->head_transition = 0;
   new_state->next_state = 0;
+  new_state->root_node = 0;
   if(ctx->last_state == 0){
     ctx->first_state = new_state;
   }else{
@@ -3099,15 +3100,54 @@ struct LxState *lexgen_parse_regex(
   ctx->curr_state->init_mode = mode;
   ctx->curr_state->next_mode = next_mode;
   ctx->curr_state->code = action_code;
+  ctx->curr_state->root_node = root_node;
 
   return ctx->curr_state;
 }
 
 void lexgen_cleanup(struct LexerContext *ctx){
-  /* In a full implementation, we would free all allocated memory here.
-   * For now, this is a placeholder as the original lemon.c doesn't
-   * explicitly free these structures either. */
-  (void)ctx;  /* Suppress unused parameter warning */
+  if(ctx->first_mode){
+      struct LxMode *node = ctx->first_mode;
+      while(node){
+        struct LxMode *next = node->next_mode;
+        //free(node->init_state);
+        free(node);
+        if(!next) break;
+        node = next;
+      }
+      ctx->first_mode = ctx->last_mode = NULL;
+  }
+  if(ctx->first_state){
+      struct LxState *state = ctx->first_state;
+      while(state){
+        struct LxState *next = state->next_state;
+        //free(state->init_mode);
+        lexgen_cleanup_ast(state->root_node);
+        lexgen_cleanup_transition(state->head_transition);
+        free(state);
+        if(!next) break;
+        state = next;
+      }
+      ctx->first_state = ctx->last_state = ctx->curr_state = NULL;
+  }
+}
+
+void lexgen_cleanup_ast(struct LxAstNode *ast){
+  if(ast){
+    lexgen_cleanup_ast(ast->lhs);
+    lexgen_cleanup_ast(ast->rhs);
+    free(ast);
+  }
+}
+
+void lexgen_cleanup_transition(struct LxTransition *transition){
+  struct LxTransition *node = transition;
+  while(node){
+    struct LxTransition *next = node->next_transition;
+    free(node);
+    if(!next) break;
+    node = next;
+  }
 }
 
 const int *lexgen_get_default_classlist(void){

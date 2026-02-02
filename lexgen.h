@@ -118,6 +118,7 @@ struct LxState {
   struct LxTransition* not_transition;  /* NOT transitions */
   struct LxTransition* dot_transition;  /* DOT transition */
   struct LxTransition* head_transition; /* Regular transitions */
+  struct LxAstNode *root_node;
   struct LxState *next_state;         /* Next state in list */
 };
 
@@ -247,6 +248,12 @@ void Lexer_generate_class_list(struct LexerContext *ctx, FILE *fp, int *lineno);
 
 /* Cleanup lexer context (currently no dynamic allocations to free) */
 void lexgen_cleanup(struct LexerContext *ctx);
+
+/* Cleanup lexer LxAstNode  */
+void lexgen_cleanup_ast(struct LxAstNode *ast);
+
+/* Cleanup lexer LxTransition  */
+void lexgen_cleanup_transition(struct LxTransition *ast);
 
 /* Get default character class list (built-in Unicode tables) */
 const int *lexgen_get_default_classlist(void);
